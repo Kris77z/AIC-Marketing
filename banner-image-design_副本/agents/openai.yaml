@@ -1,0 +1,4 @@
+interface:
+  display_name: "Banner Image Design"
+  short_description: "Generate lively campaign banners with bundled API and gallery assets"
+  default_prompt: "Generate a polished campaign banner or hero image from the user's brief, preserve any provided brand assets or gallery references, and bias the result toward a more lively, airy, layered composition with clean text-safe space."
