@@ -23,7 +23,6 @@ from pathlib import Path
 
 DEFAULT_MODEL = "gemini-3.1-flash-image-preview"
 DEFAULT_BASE_URL = "http://zx2.52youxi.cc:3000"
-DEFAULT_API_KEY = "sk-gzMN48xPRklMAaby8x6pzOCxwhaf9avF9yv5uRHbENxh0uN0"
 DEFAULT_API_FORMAT = "gemini"
 GEMINI_ENDPOINT_PATH = "/v1beta/models/{model}:generateContent"
 OPENAI_ENDPOINT_PATH = "/v1beta/openai/chat/completions"
@@ -110,6 +109,13 @@ def image_size_tier(width: int, height: int) -> str:
     if longest >= 1800:
         return "2K"
     return "1K"
+
+
+def validate_dimensions(width: int, height: int) -> None:
+    if width <= 0 or height <= 0:
+        raise ValueError("width and height must be positive integers.")
+    if width > 8192 or height > 8192:
+        raise ValueError("width and height must be <= 8192.")
 
 
 def build_payload(args: argparse.Namespace) -> dict[str, object]:
@@ -260,7 +266,13 @@ def build_auth_headers(api_key: str, base_url: str, *, openai_compatible: bool) 
     return {"Authorization": f"Bearer {api_key}"}
 
 
-def call_gemini(api_key: str, model: str, payload: dict[str, object], base_url: str) -> dict[str, object]:
+def call_gemini(
+    api_key: str,
+    model: str,
+    payload: dict[str, object],
+    base_url: str,
+    timeout_seconds: int,
+) -> dict[str, object]:
     url = resolve_endpoint(base_url, model)
     request = urllib.request.Request(
         url,
@@ -272,7 +284,7 @@ def call_gemini(api_key: str, model: str, payload: dict[str, object], base_url: 
         method="POST",
     )
 
-    with urllib.request.urlopen(request, timeout=180) as response:
+    with urllib.request.urlopen(request, timeout=timeout_seconds) as response:
         return json.loads(response.read().decode("utf-8"))
 
 
@@ -324,7 +336,12 @@ def call_gemini_with_curl(api_key: str, model: str, payload: dict[str, object], 
                 pass
 
 
-def call_openai_compatible(api_key: str, payload: dict[str, object], base_url: str) -> dict[str, object]:
+def call_openai_compatible(
+    api_key: str,
+    payload: dict[str, object],
+    base_url: str,
+    timeout_seconds: int,
+) -> dict[str, object]:
     url = resolve_openai_endpoint(base_url)
     request = urllib.request.Request(
         url,
@@ -336,7 +353,7 @@ def call_openai_compatible(api_key: str, payload: dict[str, object], base_url: s
         method="POST",
     )
 
-    with urllib.request.urlopen(request, timeout=180) as response:
+    with urllib.request.urlopen(request, timeout=timeout_seconds) as response:
         return json.loads(response.read().decode("utf-8"))
 
 
@@ -395,9 +412,14 @@ def should_try_openai_fallback(message: str, base_url: str) -> bool:
     return "404" in normalized or "openai_error" in normalized or "chat/completions" in normalized
 
 
-def request_image_openai_compatible(api_key: str, payload: dict[str, object], base_url: str) -> dict[str, object]:
+def request_image_openai_compatible(
+    api_key: str,
+    payload: dict[str, object],
+    base_url: str,
+    timeout_seconds: int,
+) -> dict[str, object]:
     try:
-        return call_openai_compatible(api_key, payload, base_url)
+        return call_openai_compatible(api_key, payload, base_url, timeout_seconds)
     except urllib.error.HTTPError as exc:
         raise GeminiRequestError(api_error_message(exc)) from exc
     except http.client.RemoteDisconnected as exc:
@@ -436,16 +458,17 @@ def request_image(
     openai_payload: dict[str, object],
     base_url: str,
     api_format: str,
+    timeout_seconds: int,
 ) -> dict[str, object]:
     if api_format == "openai":
-        return request_image_openai_compatible(api_key, openai_payload, base_url)
+        return request_image_openai_compatible(api_key, openai_payload, base_url, timeout_seconds)
 
     try:
-        return call_gemini(api_key, model, payload, base_url)
+        return call_gemini(api_key, model, payload, base_url, timeout_seconds)
     except urllib.error.HTTPError as exc:
         message = api_error_message(exc)
         if api_format == "auto" and should_try_openai_fallback(message, base_url):
-            return request_image_openai_compatible(api_key, openai_payload, base_url)
+            return request_image_openai_compatible(api_key, openai_payload, base_url, timeout_seconds)
         raise GeminiRequestError(message) from exc
     except http.client.RemoteDisconnected as exc:
         reason = "Remote end closed connection without response"
@@ -495,9 +518,18 @@ def request_image_with_retry(
     openai_payload: dict[str, object],
     base_url: str,
     api_format: str,
+    timeout_seconds: int,
 ) -> dict[str, object]:
     try:
-        return request_image(api_key, model, payload, openai_payload, base_url, api_format)
+        return request_image(
+            api_key,
+            model,
+            payload,
+            openai_payload,
+            base_url,
+            api_format,
+            timeout_seconds,
+        )
     except GeminiRequestError as exc:
         message = str(exc)
         if not should_retry_once(message):
@@ -509,7 +541,15 @@ def request_image_with_retry(
             file=sys.stderr,
         )
         time.sleep(wait_seconds)
-        return request_image(api_key, model, payload, openai_payload, base_url, api_format)
+        return request_image(
+            api_key,
+            model,
+            payload,
+            openai_payload,
+            base_url,
+            api_format,
+            timeout_seconds,
+        )
 
 
 def main() -> int:
@@ -529,6 +569,12 @@ def main() -> int:
     )
     parser.add_argument("--width", type=int, default=1536, help="Banner width in pixels")
     parser.add_argument("--height", type=int, default=1024, help="Banner height in pixels")
+    parser.add_argument(
+        "--timeout",
+        type=int,
+        default=180,
+        help="HTTP timeout in seconds (1-600). Defaults to 180.",
+    )
     parser.add_argument("--style", help="Optional visual style label")
     parser.add_argument("--negative-prompt", help="Optional negative prompt")
     parser.add_argument(
@@ -554,14 +600,21 @@ def main() -> int:
     )
     args = parser.parse_args()
 
-    api_key = (
-        args.api_key
-        or os.environ.get("GEMINI_API_KEY")
-        or os.environ.get("NANO_BANANA_API_KEY")
-        or DEFAULT_API_KEY
-    )
+    try:
+        validate_dimensions(args.width, args.height)
+    except ValueError as exc:
+        print(f"Invalid image size: {exc}", file=sys.stderr)
+        return 1
+    if args.timeout < 1 or args.timeout > 600:
+        print("Invalid timeout: must be between 1 and 600 seconds.", file=sys.stderr)
+        return 1
+
+    api_key = args.api_key or os.environ.get("GEMINI_API_KEY") or os.environ.get("NANO_BANANA_API_KEY")
     if not api_key:
-        print("Missing API key. Use --api-key or set GEMINI_API_KEY / NANO_BANANA_API_KEY.", file=sys.stderr)
+        print(
+            "Missing API key. Use --api-key or set GEMINI_API_KEY / NANO_BANANA_API_KEY.",
+            file=sys.stderr,
+        )
         return 1
 
     try:
@@ -579,6 +632,7 @@ def main() -> int:
             openai_payload,
             args.base_url,
             args.api_format,
+            args.timeout,
         )
         try:
             image_bytes = extract_image_bytes(response_json)

@@ -1,0 +1,11 @@
+.next/
+node_modules/
+.env.local
+.env*.local
+data/banner.db
+data/store.json
+data/settings.json
+data/output/*
+!data/output/.gitkeep
+public/assets/uploads/*
+!public/assets/uploads/.gitkeep

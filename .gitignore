@@ -1,0 +1,8 @@
+.DS_Store
+*.log
+
+banner-web/node_modules/
+banner-web/.next/
+banner-web/tsconfig.tsbuildinfo
+banner-web/.env.local
+banner-web/.env*.local

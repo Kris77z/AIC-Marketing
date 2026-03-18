@@ -9,7 +9,7 @@ description: Generate event banners, campaign hero images, KV visuals, or promot
 
 Use this skill to produce a banner image or a production-ready banner prompt from a short campaign brief.
 Keep the workflow simple: write the prompt, attach optional references from the bundled gallery or user assets, then generate through the bundled API script when credentials are available.
-This bundled version defaults to the shared gateway `http://zx2.52youxi.cc:3000` and includes a bundled shared token, so it can run out of the box unless the caller wants to override credentials.
+This bundled version defaults to the shared gateway `http://zx2.52youxi.cc:3000` and expects credentials from `--api-key`, `GEMINI_API_KEY`, or `NANO_BANANA_API_KEY`.
 
 Default visual direction:
 
@@ -294,11 +294,12 @@ python3 scripts/generate_banner.py \
   --output /tmp/banner-image-design.png
 ```
 
-Because the script already defaults to the shared gateway and bundled shared token, `--base-url` and `--api-key` are usually unnecessary.
+Because the script already defaults to the shared gateway, `--base-url` is usually unnecessary when using the default route.
 
 Verified working path in this workspace:
 
 ```bash
+export GEMINI_API_KEY="YOUR_API_KEY"
 python3 scripts/generate_banner.py \
   --prompt "春季活动横版 banner，明亮通透，暖金奶油色调，主体集中在右侧，左侧留白，无文字" \
   --output /tmp/banner-image-design-env-test.png

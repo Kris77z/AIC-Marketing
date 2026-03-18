@@ -6,7 +6,6 @@ The bundled `scripts/generate_banner.py` is pinned to these local defaults:
 
 - default model: `gemini-3.1-flash-image-preview`
 - default base URL root: `http://zx2.52youxi.cc:3000`
-- default API key: `sk-gzMN48xPRklMAaby8x6pzOCxwhaf9avF9yv5uRHbENxh0uN0`
 - default API format: `gemini`
 
 This means the script uses the native Gemini REST route by default, while still supporting the Gemini OpenAI-compatible route when requested explicitly.
@@ -47,15 +46,7 @@ The script accepts image bytes from either:
 
 ## Authentication
 
-The script already includes the bundled token, so this works out of the box:
-
-```bash
-python3 scripts/generate_banner.py \
-  --prompt "春季活动横幅，清透明亮，有空气感和层次，无文字" \
-  --output /tmp/banner.png
-```
-
-To override the bundled token:
+Pass the key directly:
 
 ```bash
 python3 scripts/generate_banner.py \
@@ -76,7 +67,6 @@ Priority order:
 1. `--api-key`
 2. `GEMINI_API_KEY`
 3. `NANO_BANANA_API_KEY`
-4. bundled default token
 
 ## Format Selection
 
