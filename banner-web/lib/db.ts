@@ -1,13 +1,15 @@
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 
 import { ensureAppDirectories, STORE_PATH } from "@/lib/paths";
-import { DEFAULT_ASSETS, DEFAULT_SCENES } from "@/lib/seed-data";
-import type { AssetRecord, JobRecord, SceneRecord } from "@/lib/types";
+import { DEFAULT_ASSETS, DEFAULT_HOTSPOTS, DEFAULT_SCENES } from "@/lib/seed-data";
+import type { AssetRecord, HotspotRecord, JobRecord, PipelineRunRecord, SceneRecord } from "@/lib/types";
 
 interface StoreFile {
   assets: AssetRecord[];
   scenes: SceneRecord[];
   jobs: JobRecord[];
+  hotspots: HotspotRecord[];
+  pipelineRuns: PipelineRunRecord[];
 }
 
 let cache: StoreFile | null = null;
@@ -16,7 +18,9 @@ function createInitialStore(): StoreFile {
   return {
     assets: DEFAULT_ASSETS,
     scenes: DEFAULT_SCENES,
-    jobs: []
+    jobs: [],
+    hotspots: DEFAULT_HOTSPOTS,
+    pipelineRuns: []
   };
 }
 
@@ -42,7 +46,9 @@ function readStore(): StoreFile {
   cache = {
     assets: parsed.assets ?? DEFAULT_ASSETS,
     scenes: parsed.scenes ?? DEFAULT_SCENES,
-    jobs: parsed.jobs ?? []
+    jobs: parsed.jobs ?? [],
+    hotspots: parsed.hotspots ?? DEFAULT_HOTSPOTS,
+    pipelineRuns: parsed.pipelineRuns ?? []
   };
   return cache;
 }
@@ -94,7 +100,7 @@ export function updateAsset(assetId: string, patch: Partial<AssetRecord>): Asset
     throw new Error(`Asset ${assetId} not found`);
   }
 
-  return updated;
+  return updated as AssetRecord;
 }
 
 export function deleteAsset(assetId: string): AssetRecord {
@@ -113,7 +119,7 @@ export function deleteAsset(assetId: string): AssetRecord {
     throw new Error(`Asset ${assetId} not found`);
   }
 
-  return removed;
+  return removed as AssetRecord;
 }
 
 export function insertScene(scene: SceneRecord): SceneRecord {
@@ -143,7 +149,7 @@ export function updateScene(sceneId: string, patch: Partial<SceneRecord>): Scene
     throw new Error(`Scene ${sceneId} not found`);
   }
 
-  return updated;
+  return updated as SceneRecord;
 }
 
 export function deleteScene(sceneId: string): SceneRecord {
@@ -162,7 +168,7 @@ export function deleteScene(sceneId: string): SceneRecord {
     throw new Error(`Scene ${sceneId} not found`);
   }
 
-  return removed;
+  return removed as SceneRecord;
 }
 
 export function getAssetsBySlugs(slugs: string[]): AssetRecord[] {
@@ -171,6 +177,104 @@ export function getAssetsBySlugs(slugs: string[]): AssetRecord[] {
   }
   const slugSet = new Set(slugs);
   return readStore().assets.filter((asset) => slugSet.has(asset.slug));
+}
+
+export function listHotspots(limit = 30): HotspotRecord[] {
+  return [...readStore().hotspots]
+    .sort((left, right) => {
+      const scoreDelta = right.score - left.score;
+      if (scoreDelta !== 0) {
+        return scoreDelta;
+      }
+      return right.publishedAt.localeCompare(left.publishedAt);
+    })
+    .slice(0, limit);
+}
+
+export function getHotspotById(hotspotId: string): HotspotRecord | null {
+  return readStore().hotspots.find((hotspot) => hotspot.id === hotspotId) ?? null;
+}
+
+export function upsertHotspots(hotspots: HotspotRecord[]) {
+  let updatedRecords: HotspotRecord[] = [];
+
+  mutateStore((store) => {
+    const byId = new Map(store.hotspots.map((item) => [item.id, item]));
+
+    for (const hotspot of hotspots) {
+      const current = byId.get(hotspot.id);
+      byId.set(hotspot.id, {
+        ...current,
+        ...hotspot,
+        status: current?.status === "produced" ? "produced" : hotspot.status,
+        latestRunId: current?.latestRunId ?? hotspot.latestRunId ?? null
+      });
+    }
+
+    store.hotspots = Array.from(byId.values());
+    updatedRecords = hotspots.map((hotspot) => byId.get(hotspot.id) ?? hotspot);
+  });
+
+  return updatedRecords;
+}
+
+export function updateHotspot(hotspotId: string, patch: Partial<HotspotRecord>): HotspotRecord {
+  let updated: HotspotRecord | null = null;
+
+  mutateStore((store) => {
+    const index = store.hotspots.findIndex((hotspot) => hotspot.id === hotspotId);
+    if (index === -1) {
+      throw new Error(`Hotspot ${hotspotId} not found`);
+    }
+    const nextHotspot = {
+      ...store.hotspots[index],
+      ...patch
+    };
+    store.hotspots[index] = nextHotspot;
+    updated = nextHotspot;
+  });
+
+  if (!updated) {
+    throw new Error(`Hotspot ${hotspotId} not found`);
+  }
+
+  return updated as HotspotRecord;
+}
+
+export function listPipelineRuns(limit = 30): PipelineRunRecord[] {
+  return [...readStore().pipelineRuns]
+    .sort((left, right) => right.createdAt.localeCompare(left.createdAt))
+    .slice(0, limit);
+}
+
+export function insertPipelineRun(run: PipelineRunRecord) {
+  mutateStore((store) => {
+    store.pipelineRuns.unshift(run);
+  });
+  return run;
+}
+
+export function updatePipelineRun(runId: string, patch: Partial<PipelineRunRecord>): PipelineRunRecord {
+  let updated: PipelineRunRecord | null = null;
+
+  mutateStore((store) => {
+    const index = store.pipelineRuns.findIndex((run) => run.id === runId);
+    if (index === -1) {
+      throw new Error(`Pipeline run ${runId} not found`);
+    }
+    const nextRun = {
+      ...store.pipelineRuns[index],
+      ...patch
+    };
+    store.pipelineRuns[index] = nextRun;
+    updated = nextRun;
+  });
+
+  if (!updated) {
+    throw new Error(`Pipeline run ${runId} not found`);
+  }
+
+  return updated as PipelineRunRecord;
 }
 
 export function listJobs(limit = 60): JobRecord[] {
@@ -190,7 +294,7 @@ export function insertJob(job: JobRecord) {
   return job;
 }
 
-export function updateJob(jobId: string, patch: Partial<JobRecord>) {
+export function updateJob(jobId: string, patch: Partial<JobRecord>): JobRecord {
   let updated: JobRecord | null = null;
 
   mutateStore((store) => {
@@ -210,5 +314,5 @@ export function updateJob(jobId: string, patch: Partial<JobRecord>) {
     throw new Error(`Job ${jobId} not found`);
   }
 
-  return updated;
+  return updated as JobRecord;
 }

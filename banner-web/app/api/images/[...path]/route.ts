@@ -40,6 +40,8 @@ export async function GET(
       ? "image/jpeg"
       : extension === ".webp"
         ? "image/webp"
+        : extension === ".svg"
+          ? "image/svg+xml"
         : "image/png";
 
   return new NextResponse(new Uint8Array(bytes), {

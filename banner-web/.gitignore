@@ -5,6 +5,7 @@ node_modules/
 data/banner.db
 data/store.json
 data/settings.json
+data/hotspots-feed.json
 data/output/*
 !data/output/.gitkeep
 public/assets/uploads/*

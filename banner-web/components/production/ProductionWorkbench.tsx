@@ -47,7 +47,7 @@ export function ProductionWorkbench({
     <div className="space-y-6">
       <header className="panel rounded-[34px] px-8 py-7 shadow-soft">
         <div className="max-w-5xl">
-          <div className="text-xs font-semibold uppercase tracking-[0.3em] text-[var(--accent)]">Unified Production Flow</div>
+          <div className="text-xs font-semibold uppercase tracking-[0.3em] text-[var(--accent)]">AIC-Marketing Workflow</div>
           <h1 className="mt-3 text-4xl font-semibold tracking-tight text-ink">统一出稿入口，先决定方法，再交给系统执行</h1>
           <p className="mt-4 max-w-3xl text-sm leading-7 text-[var(--muted)]">
             AI 生图和 HTML 设计不再拆成两个模块。先根据任务类型选择出稿方式，后续再把热点自动采集、自动分发和定时生产接到同一条工作流里。

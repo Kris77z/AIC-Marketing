@@ -213,7 +213,7 @@ export function DesignWorkbench({ assets, embedded = false }: { assets: AssetVie
       {!embedded ? (
         <header className="panel rounded-[34px] px-8 py-7 shadow-soft">
           <div className="max-w-4xl">
-            <div className="text-xs font-semibold uppercase tracking-[0.3em] text-[var(--accent)]">HTML Design Lab</div>
+            <div className="text-xs font-semibold uppercase tracking-[0.3em] text-[var(--accent)]">AIC Design Engine</div>
             <h1 className="mt-3 text-4xl font-semibold tracking-tight text-ink">不用等 AI，先用固定版式把稿子快速排出来</h1>
             <p className="mt-4 max-w-3xl text-sm leading-7 text-[var(--muted)]">
               这是 Phase 1.5 的第一块：先用固定模板、品牌色和素材库，把促销、新品、活动这些高频稿件快速出成 PNG。

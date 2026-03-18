@@ -4,8 +4,8 @@ import type { ReactNode } from "react";
 import "@/app/globals.css";
 
 export const metadata: Metadata = {
-  title: "Banner 图像生产系统",
-  description: "场景模板驱动的内部 AI Banner 生产工具"
+  title: "AIC-Marketing",
+  description: "统一出稿、自动热点和稳定运营图的内部营销生产系统"
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {

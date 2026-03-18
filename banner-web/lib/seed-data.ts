@@ -1,6 +1,6 @@
 import path from "node:path";
 
-import type { AssetRecord, SceneRecord, StoredSettings } from "@/lib/types";
+import type { AssetRecord, HotspotRecord, SceneRecord, StoredSettings } from "@/lib/types";
 import { LEGACY_GALLERY_DIR } from "@/lib/paths";
 
 const now = new Date().toISOString();
@@ -214,3 +214,45 @@ export const DEFAULT_SETTINGS: StoredSettings = {
   apiFormat: "gemini",
   timeoutSeconds: 180
 };
+
+export const DEFAULT_HOTSPOTS: HotspotRecord[] = [
+  {
+    id: "seed-hotspot-bitcoin-breakout",
+    title: "比特币突破关键区间后，交易平台如何快速跟进热点表达",
+    summary: "偏市场情绪和品牌态度型热点，适合快速生成一版视觉化海报抢占讨论热度。",
+    source: "seed",
+    sourceUrl: null,
+    score: 92,
+    tags: ["加密", "市场情绪", "品牌响应"],
+    publishedAt: now,
+    collectedAt: now,
+    status: "new",
+    latestRunId: null
+  },
+  {
+    id: "seed-hotspot-product-launch",
+    title: "AI 行业新产品发布，适合做信息型快报海报",
+    summary: "内容信息密度较高，适合用 HTML 版式快速排版，突出发布时间、亮点和行动入口。",
+    source: "seed",
+    sourceUrl: null,
+    score: 84,
+    tags: ["AI", "产品发布", "信息快报"],
+    publishedAt: now,
+    collectedAt: now,
+    status: "new",
+    latestRunId: null
+  },
+  {
+    id: "seed-hotspot-community-meme",
+    title: "社区梗图突然爆火，适合吉祥物和轻量趣味海报",
+    summary: "更偏情绪传播和轻松互动，适合走 AI 生图，用吉祥物或品牌人格快速跟热点。",
+    source: "seed",
+    sourceUrl: null,
+    score: 76,
+    tags: ["社区", "meme", "吉祥物"],
+    publishedAt: now,
+    collectedAt: now,
+    status: "new",
+    latestRunId: null
+  }
+];

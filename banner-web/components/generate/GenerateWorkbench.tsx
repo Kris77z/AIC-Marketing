@@ -209,7 +209,7 @@ export function GenerateWorkbench({
       {!embedded ? (
         <header className="panel rounded-[34px] px-8 py-7 shadow-soft">
           <div className="max-w-4xl">
-            <div className="text-xs font-semibold uppercase tracking-[0.3em] text-[var(--accent)]">Banner Image Production System</div>
+            <div className="text-xs font-semibold uppercase tracking-[0.3em] text-[var(--accent)]">AIC Image Engine</div>
             <h1 className="mt-3 text-4xl font-semibold tracking-tight text-ink">只选主题和风格，把稳定出图交给系统</h1>
             <p className="mt-4 max-w-3xl text-sm leading-7 text-[var(--muted)]">
               这一版先打通「选模板 → 填 brief → 系统拼 prompt → 生成 → 图库留痕」的主链路。默认不要求运营改 prompt，必要时再进高级模式。

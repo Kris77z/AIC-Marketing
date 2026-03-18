@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 
 const navigation: Array<{ href: Route; label: string; icon: typeof Sparkles }> = [
   { href: "/generate", label: "统一出稿", icon: Sparkles },
-  { href: "/hotspot", label: "热点出稿", icon: Flame },
+  { href: "/hotspot", label: "自动热点", icon: Flame },
   { href: "/gallery", label: "图库", icon: GalleryVerticalEnd },
   { href: "/scenes", label: "场景模板", icon: Boxes },
   { href: "/assets", label: "素材库", icon: ImagePlus }
@@ -22,11 +22,11 @@ export function Sidebar() {
     <aside className="panel sticky top-6 flex h-[calc(100vh-3rem)] w-full max-w-[280px] flex-col rounded-[28px] p-5 shadow-soft">
       <div className="mb-8 rounded-[24px] border border-black/5 bg-white/70 p-5">
         <div className="mb-3 inline-flex rounded-full bg-[var(--accent-soft)] px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-[var(--accent)]">
-          Internal tool
+          AIC System
         </div>
-        <div className="text-2xl font-semibold tracking-tight text-ink">Banner Lab</div>
+        <div className="text-2xl font-semibold tracking-tight text-ink">AIC-Marketing</div>
         <p className="mt-2 text-sm leading-6 text-[var(--muted)]">
-          用场景模板、素材库和可复现记录，把生图工作从命令行拉回到可协作界面里。
+          把 AI 生图、HTML 快排和自动热点流水线收进一个统一的营销生产后台。
         </p>
       </div>
 

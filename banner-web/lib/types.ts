@@ -4,6 +4,9 @@ export type SceneType = "festive" | "collab" | "product" | "mascot-led" | "gener
 export type JobStatus = "pending" | "running" | "done" | "failed";
 export type ApiFormat = "gemini" | "openai" | "auto";
 export type JobType = "generate" | "design" | "hotspot";
+export type PipelineMode = "ai" | "design";
+export type HotspotStatus = "new" | "planned" | "produced" | "failed";
+export type PipelineRunStatus = "pending" | "running" | "done" | "failed";
 
 export type BriefFieldType =
   | "text"
@@ -133,4 +136,57 @@ export interface HotspotGenerateRequestBody {
   brief?: string;
   selectedAssetSlugs?: string[];
   variantCount?: number;
+}
+
+export interface HotspotRecord {
+  id: string;
+  title: string;
+  summary: string;
+  source: string;
+  sourceUrl?: string | null;
+  score: number;
+  tags: string[];
+  publishedAt: string;
+  collectedAt: string;
+  status: HotspotStatus;
+  latestRunId?: string | null;
+}
+
+export interface PipelinePlan {
+  mode: PipelineMode;
+  title: string;
+  reasoning: string;
+  sceneId?: string | null;
+  templateId?: string | null;
+  brief?: Record<string, unknown>;
+  sizes: GenerateSize[];
+  variantCount: number;
+  selectedAssetSlugs: string[];
+  designContent?: Partial<{
+    title: string;
+    subtitle: string;
+    cta: string;
+    eyebrow: string;
+    backgroundColor: string;
+    accentColor: string;
+    textColor: string;
+    backgroundImageSlug: string;
+    heroImageSlug: string;
+    logoSlug: string;
+  }>;
+}
+
+export interface PipelineRunRecord {
+  id: string;
+  hotspotId: string;
+  hotspotTitle: string;
+  mode: PipelineMode;
+  status: PipelineRunStatus;
+  reasoning: string;
+  sceneId?: string | null;
+  templateId?: string | null;
+  jobIds: string[];
+  createdAt: string;
+  completedAt?: string | null;
+  errorMessage?: string | null;
 }

@@ -1,12 +1,16 @@
 import { HotspotWorkbench } from "@/components/hotspot/HotspotWorkbench";
-import { listAssets } from "@/lib/db";
+import { listHotspots, listJobs, listPipelineRuns } from "@/lib/db";
 import { buildImageUrl } from "@/lib/image-routes";
 
 export default function HotspotPage() {
-  const assets = listAssets().map((asset) => ({
-    ...asset,
-    imageUrl: buildImageUrl(asset.filePath)
-  }));
+  const hotspots = listHotspots(20);
+  const runs = listPipelineRuns(20);
+  const jobs = listJobs(40)
+    .filter((job) => job.jobType === "hotspot")
+    .map((job) => ({
+      ...job,
+      imageUrl: buildImageUrl(job.outputPath)
+    }));
 
-  return <HotspotWorkbench assets={assets} />;
+  return <HotspotWorkbench hotspots={hotspots} runs={runs} jobs={jobs} />;
 }

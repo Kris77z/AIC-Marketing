@@ -62,6 +62,10 @@ function shortError(message: string | null | undefined) {
   return message.length > 72 ? `${message.slice(0, 72)}...` : message;
 }
 
+function canRegenerate(job: JobRecord) {
+  return job.jobType !== "design" && job.model !== "html-design-auto";
+}
+
 export function GalleryWorkspace({
   initialJobs,
   scenes
@@ -287,13 +291,15 @@ export function GalleryWorkspace({
                 >
                   复制 Prompt
                 </button>
-                <button
-                  type="button"
-                  className="rounded-full border border-black/10 bg-white px-3 py-2 text-xs text-ink"
-                  onClick={() => startTransition(() => void handleRegenerate(job))}
-                >
-                  快速重试
-                </button>
+                {canRegenerate(job) ? (
+                  <button
+                    type="button"
+                    className="rounded-full border border-black/10 bg-white px-3 py-2 text-xs text-ink"
+                    onClick={() => startTransition(() => void handleRegenerate(job))}
+                  >
+                    快速重试
+                  </button>
+                ) : null}
               </div>
             </article>
           ))}
@@ -345,20 +351,28 @@ export function GalleryWorkspace({
                     下载原图
                   </a>
                 ) : null}
-                <button
-                  type="button"
-                  disabled={regenerating}
-                  className="rounded-full border border-black/12 bg-white/85 px-5 py-3 text-sm"
-                  onClick={() => startTransition(() => void handleRegenerate(activeJob))}
-                >
-                  {regenerating ? "重新生成中..." : "重新生成"}
-                </button>
-                <Link
-                  href={`/generate?fromJob=${activeJob.id}`}
-                  className="rounded-full border border-black/12 bg-white/85 px-5 py-3 text-sm"
-                >
-                  修改再生
-                </Link>
+                {canRegenerate(activeJob) ? (
+                  <button
+                    type="button"
+                    disabled={regenerating}
+                    className="rounded-full border border-black/12 bg-white/85 px-5 py-3 text-sm"
+                    onClick={() => startTransition(() => void handleRegenerate(activeJob))}
+                  >
+                    {regenerating ? "重新生成中..." : "重新生成"}
+                  </button>
+                ) : null}
+                {canRegenerate(activeJob) ? (
+                  <Link
+                    href={`/generate?fromJob=${activeJob.id}`}
+                    className="rounded-full border border-black/12 bg-white/85 px-5 py-3 text-sm"
+                  >
+                    修改再生
+                  </Link>
+                ) : (
+                  <Link href="/generate?workflow=design" className="rounded-full border border-black/12 bg-white/85 px-5 py-3 text-sm">
+                    去统一出稿
+                  </Link>
+                )}
                 <button
                   type="button"
                   className="rounded-full border border-black/12 bg-white/85 px-5 py-3 text-sm"
